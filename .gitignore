@@ -5,3 +5,5 @@ StartCAM-webstream.bat
 ffplay.exe
 ffprobe.exe
 ffmpeg.exe
+/stream/snapshots/*
+!/stream/snapshots/sample.jpg

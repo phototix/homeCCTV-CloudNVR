@@ -20,15 +20,16 @@ $pid = trim($pid);
 // Kill the process
 exec('taskkill /F /IM ffmpeg.exe', $output, $return_var);
 
-rem "Delete .ts and .m3u8 files in the stream directory"
-set streamDir="E:\MAMP\htdocs\stream"
-if exist "%streamDir%" (
-    del /Q "%streamDir%\*.ts"
-    del /Q "%streamDir%\*.m3u8"
-    echo "Files cleaned up in %streamDir%."
-) else (
-    echo "Directory %streamDir% does not exist. Skipping cleanup."
-)
+// Path to the directory containing .ts and .m3u8 files
+$streamDir = "E:\\MAMP\\htdocs\\stream";
+
+// Cleanup .ts and .m3u8 files if the directory exists
+if (is_dir($streamDir)) {
+    // Delete .ts files
+    array_map('unlink', glob("$streamDir/*.ts"));
+    // Delete .m3u8 files
+    array_map('unlink', glob("$streamDir/*.m3u8"));
+}
 
 // Check execution result
 if ($return_var === 0) {
