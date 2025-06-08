@@ -2,3 +2,6 @@ syncs3.php
 config.php
 SnapShot.bat
 StartCAM-webstream.bat
+ffplay.exe
+ffprobe.exe
+ffmpeg.exe
