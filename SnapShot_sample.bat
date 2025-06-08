@@ -14,7 +14,7 @@ set STREAM_HEIGHT=540
 
 :: ===== PREPARATION =====
 :: Create timestamp (format: YYYY-MM-DD_HH-MM-SS)
-for /f "tokens=1-3 delims=/ " %%a in ("%date%") do set DATE_STR=%%c-%%b-%%a
+for /f "tokens=1-3 delims=- " %%a in ("%date%") do set DATE_STR=%%a-%%c-%%b
 for /f "tokens=1-3 delims=:." %%a in ("%time%") do set TIME_STR=%%a-%%b-%%c
 set TIMESTAMP=%DATE_STR%_%TIME_STR%
 
