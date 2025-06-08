@@ -27,8 +27,8 @@ foreach ($paginatedFiles as $file) {
     $filename = basename($file);
     $nameWithoutExt = pathinfo($filename, PATHINFO_FILENAME);
     $images[] = [
-        'thumb' => 'snapshots/' . $filename,
-        'full' => 'snapshots/' . $filename,
+        'thumb' => '/stream/snapshots/' . $filename,
+        'full' => '/stream/snapshots/' . $filename,
         'name' => $nameWithoutExt
     ];
 }
