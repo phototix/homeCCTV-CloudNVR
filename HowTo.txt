@@ -1,0 +1,5 @@
+1) Start Web Services - MAMP Pro - Port 81 is for HomeCCTV
+2) Start Cloudflared Tunnel - cloudflared --config C:\Users\User\.cloudflared\cctv.yml tunnel run homecctv
+3) Start FFMPGE Encode CCTV "StartCAM-webstream.bat" in E:\MAMP\htdocs
+4) Check video stream at https://homecctv.brandon.my/
+

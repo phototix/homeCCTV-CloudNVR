@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .gallery-img {
+            cursor: pointer;
+            transition: transform 0.2s;
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+        .gallery-img:hover {
+            transform: scale(1.02);
+        }
+        .modal-img {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+        .image-caption {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            text-align: center;
+            word-break: break-all;
+        }
+        .gallery-item {
+            margin-bottom: 20px;
+        }
+        .filter-btn.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .btn-group {
+            margin-bottom: 20px;
+        }
+        .modal-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 60px;
+            font-size: 1.5rem;
+            z-index: 10;
+        }
+        .modal-nav-btn:hover {
+            background: rgba(0,0,0,0.7);
+        }
+        .modal-nav-btn.prev {
+            left: 10px;
+        }
+        .modal-nav-btn.next {
+            right: 10px;
+        }
+        .modal-content {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-5">Image Gallery</h1>
+        
+        <!-- Filter Buttons -->
+        <div class="row justify-content-center">
+            <div class="col-auto">
+                <div class="btn-group" role="group" aria-label="Image filters">
+                    <button type="button" class="btn btn-outline-primary filter-btn active" data-filter="all">All</button>
+                    <button type="button" class="btn btn-outline-primary filter-btn" data-filter="cam1">Camera 1</button>
+                    <button type="button" class="btn btn-outline-primary filter-btn" data-filter="cam2">Camera 2</button>
+                    <button type="button" class="btn btn-outline-primary filter-btn" data-filter="cam3">Camera 3</button>
+                    <button type="button" class="btn btn-outline-primary filter-btn" data-filter="grid">Grid</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row" id="gallery-container">
+            <!-- Images will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Modal for full image view -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <button class="modal-nav-btn prev">&lt;</button>
+                    <img src="" class="modal-img" id="fullImage">
+                    <button class="modal-nav-btn next">&gt;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let allImages = [];
+            let filteredImages = [];
+            let currentImageIndex = 0;
+            const galleryContainer = document.getElementById('gallery-container');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            const fullImage = document.getElementById('fullImage');
+            const modalTitle = document.getElementById('imageModalLabel');
+            const prevBtn = document.querySelector('.modal-nav-btn.prev');
+            const nextBtn = document.querySelector('.modal-nav-btn.next');
+            
+            // Load images and initialize gallery
+            fetch('listImages.php')
+                .then(response => response.json())
+                .then(images => {
+                    allImages = images;
+                    filteredImages = images;
+                    renderGallery(images);
+                    
+                    // Set up filter buttons
+                    filterButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            // Update active state
+                            filterButtons.forEach(btn => btn.classList.remove('active'));
+                            this.classList.add('active');
+                            
+                            // Filter images
+                            const filter = this.dataset.filter;
+                            if (filter === 'all') {
+                                filteredImages = allImages;
+                            } else {
+                                filteredImages = allImages.filter(img => 
+                                    img.name.startsWith(filter + '_')
+                                );
+                            }
+                            renderGallery(filteredImages);
+                        });
+                    });
+                })
+                .catch(error => console.error('Error loading images:', error));
+            
+            // Function to render gallery
+            function renderGallery(images) {
+                galleryContainer.innerHTML = '';
+                
+                images.forEach((image, index) => {
+                    const col = document.createElement('div');
+                    let cameraType = 'all';
+                    if (image.name.startsWith('cam1_')) cameraType = 'cam1';
+                    if (image.name.startsWith('cam2_')) cameraType = 'cam2';
+                    if (image.name.startsWith('cam3_')) cameraType = 'cam3';
+                    if (image.name.startsWith('grid_')) cameraType = 'grid';
+                    
+                    col.className = `col-md-4 col-sm-6 gallery-item ${cameraType}`;
+                    
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'd-flex flex-column align-items-center';
+                    
+                    const img = document.createElement('img');
+                    img.src = image.thumb;
+                    img.className = 'gallery-img img-thumbnail';
+                    img.alt = image.name;
+                    img.setAttribute('data-full', image.full);
+                    img.setAttribute('data-name', image.name);
+                    img.setAttribute('data-index', index);
+                    
+                    const caption = document.createElement('div');
+                    caption.className = 'image-caption';
+                    const displayName = image.name.replace(/^(cam1_|cam2_|cam3_|grid_)/, '');
+                    caption.textContent = displayName;
+                    
+                    img.addEventListener('click', function() {
+                        currentImageIndex = parseInt(this.getAttribute('data-index'));
+                        showImage(currentImageIndex);
+                        modal.show();
+                    });
+                    
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(caption);
+                    col.appendChild(imgContainer);
+                    galleryContainer.appendChild(col);
+                });
+            }
+            
+            // Function to show image in modal
+            function showImage(index) {
+                if (index >= 0 && index < filteredImages.length) {
+                    const image = filteredImages[index];
+                    fullImage.src = image.full;
+                    modalTitle.textContent = image.name;
+                    currentImageIndex = index;
+                    
+                    // Update button states
+                    prevBtn.disabled = index <= 0;
+                    nextBtn.disabled = index >= filteredImages.length - 1;
+                }
+            }
+            
+            // Navigation functions
+            function showPrevImage() {
+                if (currentImageIndex > 0) {
+                    showImage(currentImageIndex - 1);
+                }
+            }
+            
+            function showNextImage() {
+                if (currentImageIndex < filteredImages.length - 1) {
+                    showImage(currentImageIndex + 1);
+                }
+            }
+            
+            // Button event listeners
+            prevBtn.addEventListener('click', showPrevImage);
+            nextBtn.addEventListener('click', showNextImage);
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (modal._element.classList.contains('show')) { // Only if modal is open
+                    switch(e.key) {
+                        case 'ArrowLeft':
+                            showPrevImage();
+                            break;
+                        case 'ArrowRight':
+                            showNextImage();
+                            break;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
