@@ -400,15 +400,16 @@
             }
 
             function startBackgroundStream() {
-                playBtn.style.display = "block";
-                stopBtn.style.display = "block";
-                startBtn.style.display = "none";
+                setTimeout(() => {
+                    playBtn.style.display = "block";
+                    stopBtn.style.display = "block";
+                    startBtn.style.display = "none";
+                }, 3000);
                 fetch('startStream.php', {
                     method: 'POST',
                 })
                 .then(response => response.text())
                 .then(data => {
-                    alert(data);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -426,6 +427,7 @@
                     stopBtn.style.display = "none";
                     videoContainer.style.display = "none";
                     startBtn.style.display = "block";
+                    window.location="/video.html";
                 })
                 .catch(error => {
                     console.error('Error:', error);
