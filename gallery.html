@@ -196,8 +196,97 @@
                     });
             }
             
-            // Rest of your JavaScript remains the same...
-            // [Keep all the remaining functions unchanged]
+            // Function to render gallery
+            function renderGallery(images, clear = true) {
+                if (clear) {
+                    galleryContainer.innerHTML = '';
+                }
+                
+                images.forEach((image, index) => {
+                    const globalIndex = allImages.findIndex(img => img.name === image.name);
+                    
+                    const col = document.createElement('div');
+                    let cameraType = 'all';
+                    if (image.name.startsWith('cam1_')) cameraType = 'cam1';
+                    if (image.name.startsWith('cam2_')) cameraType = 'cam2';
+                    if (image.name.startsWith('cam3_')) cameraType = 'cam3';
+                    if (image.name.startsWith('grid_')) cameraType = 'grid';
+                    
+                    col.className = `col-md-4 col-sm-6 gallery-item ${cameraType}`;
+                    
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'd-flex flex-column align-items-center';
+                    
+                    const img = document.createElement('img');
+                    img.src = image.thumb;
+                    img.className = 'gallery-img img-thumbnail';
+                    img.alt = image.name;
+                    img.setAttribute('data-full', image.full);
+                    img.setAttribute('data-name', image.name);
+                    img.setAttribute('data-index', globalIndex);
+                    
+                    const caption = document.createElement('div');
+                    caption.className = 'image-caption';
+                    const displayName = image.name.replace(/^(cam1_|cam2_|cam3_|grid_)/, '');
+                    caption.textContent = displayName;
+                    
+                    img.addEventListener('click', function() {
+                        currentImageIndex = parseInt(this.getAttribute('data-index'));
+                        showImage(currentImageIndex);
+                        modal.show();
+                    });
+                    
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(caption);
+                    col.appendChild(imgContainer);
+                    galleryContainer.appendChild(col);
+                });
+            }
+            
+            // Function to show image in modal
+            function showImage(index) {
+                if (index >= 0 && index < filteredImages.length) {
+                    const image = filteredImages[index];
+                    fullImage.src = image.full;
+                    modalTitle.textContent = image.name;
+                    currentImageIndex = index;
+                    
+                    // Update button states
+                    prevBtn.disabled = index <= 0;
+                    nextBtn.disabled = index >= filteredImages.length - 1;
+                }
+            }
+            
+            // Navigation functions
+            function showPrevImage() {
+                if (currentImageIndex > 0) {
+                    showImage(currentImageIndex - 1);
+                }
+            }
+            
+            function showNextImage() {
+                if (currentImageIndex < filteredImages.length - 1) {
+                    showImage(currentImageIndex + 1);
+                }
+            }
+            
+            // Button event listeners
+            prevBtn.addEventListener('click', showPrevImage);
+            nextBtn.addEventListener('click', showNextImage);
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (modal._element.classList.contains('show')) {
+                    switch(e.key) {
+                        case 'ArrowLeft':
+                            showPrevImage();
+                            break;
+                        case 'ArrowRight':
+                            showNextImage();
+                            break;
+                    }
+                }
+            });
         });
     </script>
 </body>
