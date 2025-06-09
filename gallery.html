@@ -6,284 +6,171 @@
     <title>Image Gallery</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Lightbox CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
     <style>
-        .gallery-img {
+        .image-container {
+            margin-bottom: 20px;
+        }
+        .image-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
             cursor: pointer;
             transition: transform 0.2s;
-            height: 200px;
-            width: 100%;
-            object-fit: cover;
         }
-        .gallery-img:hover {
+        .image-thumbnail:hover {
             transform: scale(1.02);
         }
-        .modal-img {
-            max-width: 100%;
-            max-height: 80vh;
-        }
-        .image-caption {
-            margin-top: 8px;
-            font-size: 0.9rem;
-            text-align: center;
-            word-break: break-all;
-        }
-        .gallery-item {
-            margin-bottom: 20px;
-        }
-        .filter-btn.active {
-            background-color: #0d6efd;
-            color: white;
-        }
-        .btn-group {
-            margin-bottom: 20px;
-        }
-        .modal-nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0,0,0,0.5);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 60px;
-            font-size: 1.5rem;
-            z-index: 10;
-        }
-        .modal-nav-btn:hover {
-            background: rgba(0,0,0,0.7);
-        }
-        .modal-nav-btn.prev {
-            left: 10px;
-        }
-        .modal-nav-btn.next {
-            right: 10px;
-        }
-        .modal-content {
-            position: relative;
-        }
-        .loading-spinner {
-            display: none;
+        .loading {
             text-align: center;
             padding: 20px;
+            display: none;
         }
-        .loading-spinner.show {
-            display: block;
+        #filter-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container py-5">
+    <div class="container mt-4">
         
-        <!-- Filter Buttons -->
-        <div class="row justify-content-center">
-            <div class="col-auto">
-                <div class="btn-group" role="group" aria-label="Image filters">
-                    <button type="button" class="btn btn-outline-primary filter-btn active" data-filter="all">All</button>
-                    <button type="button" class="btn btn-outline-primary filter-btn" data-filter="cam1">Camera 1</button>
-                    <button type="button" class="btn btn-outline-primary filter-btn" data-filter="cam2">Camera 2</button>
-                    <button type="button" class="btn btn-outline-primary filter-btn" data-filter="cam3">Camera 3</button>
-                    <button type="button" class="btn btn-outline-primary filter-btn" data-filter="grid">Grid</button>
+        <div id="filter-section">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="date-filter" class="form-label">Filter by Date:</label>
+                    <input type="date" class="form-control" id="date-filter">
+                </div>
+                <div class="col-md-4">
+                    <label for="camera-filter" class="form-label">Filter by Camera:</label>
+                    <select class="form-select" id="camera-filter">
+                        <option value="all">All Cameras</option>
+                        <option value="cam1">Camera 1</option>
+                        <option value="cam2">Camera 2</option>
+                        <option value="cam3">Camera 3</option>
+                        <option value="grid">Grid</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button id="apply-filter" class="btn btn-primary">Apply Filters</button>
+                    <button id="reset-filter" class="btn btn-secondary ms-2">Reset</button>
                 </div>
             </div>
         </div>
+
+        <div id="gallery-container" class="row"></div>
         
-        <div class="row" id="gallery-container">
-            <!-- Images will be loaded here -->
-        </div>
-        
-        <div class="loading-spinner" id="loadingSpinner">
+        <div id="loading" class="loading">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
     </div>
 
-    <!-- Modal for full image view -->
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <button class="modal-nav-btn prev">&lt;</button>
-                    <img src="" class="modal-img" id="fullImage">
-                    <button class="modal-nav-btn next">&gt;</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS and dependencies -->
+    <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Lightbox JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let allImages = [];
-            let filteredImages = [];
-            let currentImageIndex = 0;
-            let currentPage = 1;
-            let currentFilter = 'all';
-            let isLoading = false;
+        $(document).ready(function() {
+            let page = 1;
+            let loading = false;
             let hasMore = true;
+            let currentFilterDate = '';
+            let currentFilterCamera = 'all';
             
-            const galleryContainer = document.getElementById('gallery-container');
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-            const fullImage = document.getElementById('fullImage');
-            const modalTitle = document.getElementById('imageModalLabel');
-            const prevBtn = document.querySelector('.modal-nav-btn.prev');
-            const nextBtn = document.querySelector('.modal-nav-btn.next');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            
-            // Initial load
-            loadImages(currentPage, currentFilter);
-            
-            // Set up filter buttons
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Update active state
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Reset for new filter
-                    currentPage = 1;
-                    currentFilter = this.dataset.filter;
-                    galleryContainer.innerHTML = '';
-                    loadImages(currentPage, currentFilter);
-                });
+            // Initialize lightbox with keyboard navigation
+            lightbox.option({
+                'resizeDuration': 200,
+                'wrapAround': true,
+                'disableScrolling': true,
+                'positionFromTop': 100
             });
             
-            // Set up scroll listener for infinite scroll
-            window.addEventListener('scroll', function() {
-                if (isLoading || !hasMore) return;
-                
-                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-                    currentPage++;
-                    loadImages(currentPage, currentFilter);
+            // Load initial images
+            loadImages();
+            
+            // Infinite scroll
+            $(window).scroll(function() {
+                if ($(window).scrollTop() + $(window).height() > $(document).height() - 100 && !loading && hasMore) {
+                    page++;
+                    loadImages();
                 }
             });
             
-            // Function to load images
-            function loadImages(page, filter = 'all') {
-                isLoading = true;
-                loadingSpinner.classList.add('show');
+            // Apply filter button
+            $('#apply-filter').click(function() {
+                currentFilterDate = $('#date-filter').val();
+                currentFilterCamera = $('#camera-filter').val();
+                page = 1;
+                $('#gallery-container').empty();
+                loadImages();
+            });
+            
+            // Reset filter button
+            $('#reset-filter').click(function() {
+                $('#date-filter').val('');
+                $('#camera-filter').val('all');
+                currentFilterDate = '';
+                currentFilterCamera = 'all';
+                page = 1;
+                $('#gallery-container').empty();
+                loadImages();
+            });
+            
+            function loadImages() {
+                loading = true;
+                $('#loading').show();
                 
-                fetch(`listImages.php?page=${page}&filter=${filter}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const newImages = data.images;
-                        hasMore = data.pagination.hasMore;
-                        
-                        if (page === 1) {
-                            // First page of new filter
-                            filteredImages = newImages;
+                $.ajax({
+                    url: 'listImages.php',
+                    type: 'GET',
+                    data: {
+                        page: page,
+                        date: currentFilterDate,
+                        camera: currentFilterCamera
+                    },
+                    success: function(response) {
+                        if (response.trim() === '') {
+                            hasMore = false;
+                            if (page === 1) {
+                                $('#gallery-container').html('<div class="col-12 text-center"><p>No images found matching your criteria.</p></div>');
+                            }
                         } else {
-                            // Append to existing filtered images
-                            filteredImages = [...filteredImages, ...newImages];
+                            $('#gallery-container').append(response);
+                            hasMore = true;
                         }
-                        
-                        renderGallery(newImages, page === 1);
-                        isLoading = false;
-                        loadingSpinner.classList.remove('show');
-                    })
-                    .catch(error => {
-                        console.error('Error loading images:', error);
-                        isLoading = false;
-                        loadingSpinner.classList.remove('show');
-                    });
-            }
-            
-            // Function to render gallery
-            function renderGallery(images, clear = true) {
-                if (clear) {
-                    galleryContainer.innerHTML = '';
-                }
-                
-                images.forEach((image, index) => {
-                    const globalIndex = allImages.findIndex(img => img.name === image.name);
-                    
-                    const col = document.createElement('div');
-                    let cameraType = 'all';
-                    if (image.name.startsWith('cam1_')) cameraType = 'cam1';
-                    if (image.name.startsWith('cam2_')) cameraType = 'cam2';
-                    if (image.name.startsWith('cam3_')) cameraType = 'cam3';
-                    if (image.name.startsWith('grid_')) cameraType = 'grid';
-                    
-                    col.className = `col-md-4 col-sm-6 gallery-item ${cameraType}`;
-                    
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'd-flex flex-column align-items-center';
-                    
-                    const img = document.createElement('img');
-                    img.src = image.thumb;
-                    img.className = 'gallery-img img-thumbnail';
-                    img.alt = image.name;
-                    img.setAttribute('data-full', image.full);
-                    img.setAttribute('data-name', image.name);
-                    img.setAttribute('data-index', globalIndex);
-                    
-                    const caption = document.createElement('div');
-                    caption.className = 'image-caption';
-                    const displayName = image.name.replace(/^(cam1_|cam2_|cam3_|grid_)/, '');
-                    caption.textContent = displayName;
-                    
-                    img.addEventListener('click', function() {
-                        currentImageIndex = parseInt(this.getAttribute('data-index'));
-                        showImage(currentImageIndex);
-                        modal.show();
-                    });
-                    
-                    imgContainer.appendChild(img);
-                    imgContainer.appendChild(caption);
-                    col.appendChild(imgContainer);
-                    galleryContainer.appendChild(col);
+                        loading = false;
+                        $('#loading').hide();
+                    },
+                    error: function() {
+                        loading = false;
+                        $('#loading').hide();
+                        alert('Error loading images.');
+                    }
                 });
             }
             
-            // Function to show image in modal
-            function showImage(index) {
-                if (index >= 0 && index < filteredImages.length) {
-                    const image = filteredImages[index];
-                    fullImage.src = image.full;
-                    modalTitle.textContent = image.name;
-                    currentImageIndex = index;
-                    
-                    // Update button states
-                    prevBtn.disabled = index <= 0;
-                    nextBtn.disabled = index >= filteredImages.length - 1;
-                }
-            }
-            
-            // Navigation functions
-            function showPrevImage() {
-                if (currentImageIndex > 0) {
-                    showImage(currentImageIndex - 1);
-                }
-            }
-            
-            function showNextImage() {
-                if (currentImageIndex < filteredImages.length - 1) {
-                    showImage(currentImageIndex + 1);
-                }
-            }
-            
-            // Button event listeners
-            prevBtn.addEventListener('click', showPrevImage);
-            nextBtn.addEventListener('click', showNextImage);
-            
-            // Keyboard navigation
-            document.addEventListener('keydown', function(e) {
-                if (modal._element.classList.contains('show')) {
-                    switch(e.key) {
-                        case 'ArrowLeft':
-                            showPrevImage();
+            // Keyboard navigation for lightbox
+            $(document).keydown(function(e) {
+                if ($('#lightbox').length) {
+                    switch(e.which) {
+                        case 37: // left arrow
+                            $('.lb-prev').click();
                             break;
-                        case 'ArrowRight':
-                            showNextImage();
+                        case 39: // right arrow
+                            $('.lb-next').click();
                             break;
+                        default:
+                            return;
                     }
+                    e.preventDefault();
                 }
             });
         });

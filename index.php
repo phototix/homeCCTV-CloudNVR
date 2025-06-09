@@ -84,7 +84,7 @@
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link" data-module="gallery.html">
-                        <i class="fas fa-images me-2"></i>Gallery
+                        <i class="fas fa-images me-2"></i>Snapshots
                     </a>
                 </li>
                 <li class="nav-item">

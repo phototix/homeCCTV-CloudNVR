@@ -66,6 +66,6 @@ $config['lastUpdated'] = date('Y-m-d H:i:s');
 $configContent = "<?php\n\$config = " . var_export($config, true) . ";\n?>";
 file_put_contents('config.php', $configContent);
 
-header('Location: settings.php?status=success');
+header('Location: saveBat.php?status=success');
 exit;
 ?>

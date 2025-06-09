@@ -4,6 +4,12 @@ $config = [];
 if (file_exists('config.php')) {
     include 'config.php';
 }
+function decryptPassword($encrypted, $key) {
+    $data = base64_decode($encrypted);
+    $iv = substr($data, 0, openssl_cipher_iv_length('aes-256-cbc'));
+    $ciphertext = substr($data, openssl_cipher_iv_length('aes-256-cbc'));
+    return openssl_decrypt($ciphertext, 'aes-256-cbc', $key, 0, $iv);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -81,11 +87,10 @@ if (file_exists('config.php')) {
                              value="<?php echo htmlspecialchars($camera['username'] ?? 'admin') ?>">
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label">Password</label>
+                      <label class="form-label">Password:</label>
                       <div class="input-group">
                         <input type="password" class="form-control camera-password" 
-                               name="cameraPassword[]" placeholder="••••••" 
-                               value="<?php echo isset($camera['password']) ? '********' : '' ?>">
+                               name="cameraPassword[]" value="<?php echo decryptPassword($camera['password'], $config['encryptionKey']) ?>">
                         <button class="btn btn-outline-secondary password-toggle" type="button">
                           <i class="bi bi-eye"></i>
                         </button>

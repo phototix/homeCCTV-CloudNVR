@@ -1,47 +1,70 @@
 <?php
-$imageFolder = 'E:/MAMP/htdocs/stream/snapshots/';
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+$directory = 'E:/MAMP/htdocs/stream/snapshots/';
 $perPage = 18;
-$offset = ($page - 1) * $perPage;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$filterDate = isset($_GET['date']) ? $_GET['date'] : '';
+$filterCamera = isset($_GET['camera']) ? $_GET['camera'] : 'all';
 
-// Get all matching files based on filter
-$allFiles = glob($imageFolder . '*.jpg');
-$filteredFiles = [];
+// Validate and sanitize inputs
+if ($page < 1) $page = 1;
+$filterDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $filterDate) ? $filterDate : '';
+$filterCamera = in_array($filterCamera, ['all', 'cam1', 'cam2', 'cam3', 'grid']) ? $filterCamera : 'all';
 
-foreach ($allFiles as $file) {
-    $filename = basename($file);
-    if ($filter === 'all' || strpos($filename, $filter . '_') === 0) {
-        $filteredFiles[] = $file;
+// Get all image files
+$images = [];
+if (is_dir($directory)) {
+    $files = scandir($directory);
+    foreach ($files as $file) {
+        if (preg_match('/^(cam1|cam2|cam3|grid)_(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})\.jpg$/i', $file, $matches)) {
+            $camera = strtolower($matches[1]);
+            $date = $matches[2];
+            $time = $matches[3] . ':' . $matches[4] . ':' . $matches[5];
+            
+            // Apply filters
+            if (($filterCamera === 'all' || $camera === $filterCamera) && 
+                (empty($filterDate) || $date === $filterDate)) {
+                $images[] = [
+                    'filename' => $file,
+                    'path' => $directory . $file,
+                    'camera' => $camera,
+                    'date' => $date,
+                    'time' => $time,
+                    'timestamp' => strtotime($date . ' ' . $time)
+                ];
+            }
+        }
     }
 }
 
-$totalImages = count($filteredFiles);
+// Sort by timestamp (newest first)
+usort($images, function($a, $b) {
+    return $b['timestamp'] - $a['timestamp'];
+});
+
+// Pagination
+$totalImages = count($images);
 $totalPages = ceil($totalImages / $perPage);
+$offset = ($page - 1) * $perPage;
+$paginatedImages = array_slice($images, $offset, $perPage);
 
-// Paginate the filtered results
-$paginatedFiles = array_slice($filteredFiles, $offset, $perPage);
-$images = [];
-
-foreach ($paginatedFiles as $file) {
-    $filename = basename($file);
-    $nameWithoutExt = pathinfo($filename, PATHINFO_FILENAME);
-    $images[] = [
-        'thumb' => '/stream/snapshots/' . $filename,
-        'full' => '/stream/snapshots/' . $filename,
-        'name' => $nameWithoutExt
-    ];
+// Output HTML
+foreach ($paginatedImages as $image) {
+    $thumbnailPath = '/stream/snapshots/' . $image['filename'];
+    $fullPath = '/stream/snapshots/' . $image['filename'];
+    $cameraName = ucfirst($image['camera']);
+    $dateTime = date('Y-m-d H:i:s', $image['timestamp']);
+    
+    echo <<<HTML
+    <div class="col-md-4 col-sm-6 image-container">
+        <div class="card">
+            <a href="$fullPath" data-lightbox="gallery" data-title="$cameraName - $dateTime">
+                <img src="$thumbnailPath" class="image-thumbnail card-img-top" alt="$cameraName - $dateTime">
+            </a>
+            <div class="card-body">
+                <small class="text-muted">$cameraName - $dateTime</small>
+            </div>
+        </div>
+    </div>
+HTML;
 }
-
-header('Content-Type: application/json');
-echo json_encode([
-    'images' => $images,
-    'pagination' => [
-        'page' => $page,
-        'perPage' => $perPage,
-        'totalImages' => $totalImages,
-        'totalPages' => $totalPages,
-        'hasMore' => $page < $totalPages
-    ]
-]);
 ?>
