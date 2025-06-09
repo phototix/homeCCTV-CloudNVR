@@ -88,7 +88,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link" data-module="settings.html">
+                    <a href="#" class="nav-link" data-module="settings.php">
                         <i class="fas fa-cog me-2"></i>Settings
                     </a>
                 </li>
