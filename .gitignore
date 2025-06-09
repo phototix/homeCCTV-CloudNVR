@@ -7,3 +7,4 @@ ffprobe.exe
 ffmpeg.exe
 /stream/snapshots/*
 !/stream/snapshots/sample.jpg
+/stream/*
