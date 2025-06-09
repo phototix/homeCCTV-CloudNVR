@@ -25,7 +25,7 @@ $enabledCameras = array_filter($config['cameras'], function($camera) {
 
 // Generate the batch file content
 $batchContent = '@echo off
-echo Starting streams...\
+echo Starting streams...
 
 :: === CONFIGURATION ===
 set STREAM_WIDTH=640
@@ -39,29 +39,26 @@ set OUTPUT_PATH="E:\MAMP\htdocs\stream\output.m3u8"
 :: === FFMPEG COMMAND ===
 ffmpeg.exe ^';
 
+$batchContent .= '
+-rtsp_transport udp ^';
+
 // Add input streams for each camera
 foreach ($enabledCameras as $index => $camera) {
     $batchContent .= '
-  -rtsp_transport udp ^
-  -i "rtsp://%RTSP_USER%:%RTSP_PASS%@'.$camera['ip'].':554/stream2" ^';
+-i "rtsp://%RTSP_USER%:%RTSP_PASS%@'.$camera['ip'].':554/stream2" ^';
 }
 
 // Add blank image input and filter complex
 $batchContent .= '
-  -i blank.png ^
-  -filter_complex "';
-
-// Add scaling for each camera
-foreach ($enabledCameras as $index => $camera) {
-    $batchContent .= '['.$index.':v]scale=%STREAM_WIDTH%:%STREAM_HEIGHT%['.strtolower(substr($camera['group'], 0, 1)).substr($camera['name'], -1).'];';
-}
+-i blank.png ^
+-filter_complex "[0:v]scale=%STREAM_WIDTH%:%STREAM_HEIGHT%[tl];[1:v]scale=%STREAM_WIDTH%:%STREAM_HEIGHT%[tr];[2:v]scale=%STREAM_WIDTH%:%STREAM_HEIGHT%[bl];[3:v]scale=%STREAM_WIDTH%:%STREAM_HEIGHT%[br];[tl][tr][bl][br]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0" ^';
 
 // Add the xstack layout
-$batchContent .= '[tl][tr][bl][br]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0" ^
-  -c:v libx264 -preset ultrafast -g 25 ^
-  -f hls -hls_time 1 -hls_list_size 3 ^
-  -hls_flags delete_segments+append_list ^
-  -y %OUTPUT_PATH%
+$batchContent .= '
+-c:v libx264 -preset ultrafast -g 25 ^
+-f hls -hls_time 1 -hls_list_size 3 ^
+-hls_flags delete_segments+append_list ^
+-y %OUTPUT_PATH%
 
 rem Log the PID of the process
 echo %ERRORLEVEL% > stream_pid.txt';
