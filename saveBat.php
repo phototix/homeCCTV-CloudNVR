@@ -89,5 +89,6 @@ $filename = 'SnapShot.bat';
 file_put_contents($filename, $batContent);
 
 echo "Successfully generated batch file: " . $filename . "\n";
-echo "Location: " . realpath($filename) . "\n";
+header('Location: saveStreamBat.php?status=success');
+exit;
 ?>
