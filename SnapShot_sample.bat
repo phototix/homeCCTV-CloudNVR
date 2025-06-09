@@ -14,9 +14,8 @@ set STREAM_HEIGHT=540
 
 :: ===== PREPARATION =====
 :: Create timestamp (format: YYYY-MM-DD_HH-MM-SS)
-for /f "tokens=1-3 delims=- " %%a in ("%date%") do set DATE_STR=%%a-%%c-%%b
-for /f "tokens=1-3 delims=:." %%a in ("%time%") do set TIME_STR=%%a-%%b-%%c
-set TIMESTAMP=%DATE_STR%_%TIME_STR%
+for /f "tokens=2 delims==." %%i in ('"wmic os get localdatetime /value"') do set dt=%%i
+set TIMESTAMP=!dt:~0,4!-!dt:~4,2!-!dt:~6,2!_!dt:~8,2!-!dt:~10,2!-!dt:~12,2!
 
 :: Create directory if missing
 if not exist "%SNAPSHOT_DIR%" mkdir "%SNAPSHOT_DIR%"
