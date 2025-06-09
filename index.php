@@ -102,7 +102,7 @@
                     <button class="btn btn-dark d-lg-none" id="sidebarToggle">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <a class="navbar-brand" href="#">Cloud NVR - WebbyPage</a>
+                    <a class="navbar-brand" href="#">Cloud NVR</a>
                     <div class="ms-auto">
                         <span class="navbar-text me-3">
                             Welcome, <strong>Admin</strong>
