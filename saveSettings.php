@@ -25,7 +25,7 @@ if (!isset($config['encryptionKey'])) {
 }
 
 // Save OS selection (Windows/Ubuntu/Others)
-$operatingSystem = $_POST['operatingSystem'] ?? 'Windows'; // Default to Windows if not specified
+$operatingSystem = $_POST['operatingSystem'] ?? 'windows'; // Default to Windows if not specified
 $config['operatingSystem'] = $operatingSystem;
 
 // Process form data
@@ -72,9 +72,9 @@ file_put_contents('config.php', $configContent);
 
 // Determine redirect URL based on OS selection
 $redirectUrl = 'saveBat.php'; // Default for Windows
-if ($operatingSystem === 'Ubuntu') {
-    $redirectUrl = 'saveSH.php';
-} elseif ($operatingSystem === 'Others') {
+if ($operatingSystem === 'ubuntu') {
+    $redirectUrl = 'saveStreamSH.php';
+} elseif ($operatingSystem === 'others') {
     $redirectUrl = 'saveOthers.php';
 }
 

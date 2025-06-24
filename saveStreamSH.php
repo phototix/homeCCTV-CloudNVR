@@ -31,9 +31,9 @@ STREAM_WIDTH=640
 STREAM_HEIGHT=360
 OUTPUT_WIDTH=1920
 OUTPUT_HEIGHT=1080
-RTSP_USER="'.$config['adminUsername'].'"
+RTSP_USER="'.$config['cameras'][0]['username'].'"
 RTSP_PASS="'.decryptPassword($config['cameras'][0]['password'], $config['encryptionKey']).'"
-OUTPUT_PATH="/var/www/html/stream/output.m3u8"
+OUTPUT_PATH="/var/www/sg-cctv/stream/output.m3u8"
 # === FFMPEG COMMAND ===
 ffmpeg \\
 -rtsp_transport udp \\';
@@ -59,5 +59,36 @@ echo $! > stream_pid.txt';
 file_put_contents('StartCAM-webstream.sh', $shellContent);
 // Make the script executable
 chmod('StartCAM-webstream.sh', 0755);
+
+// File to make executable
+$filename = "StartCAM-webstream.sh";
+
+// 1. Remove Windows carriage returns
+$command1 = "sed -i 's/\\r\$//' \"$filename\"";
+echo "Running: $command1\n";
+system($command1, $return1);
+if ($return1 !== 0) {
+    die("Error removing Windows line endings");
+}
+
+// 2. Verify line endings (first 3 lines)
+$command2 = "cat -v \"$filename\" | head -n 3";
+echo "Verifying line endings:\n";
+system($command2, $return2);
+if ($return2 !== 0) {
+    die("Error verifying file contents");
+}
+
+// 3. Make file executable
+$command3 = "chmod +x \"$filename\"";
+echo "Making file executable: $command3\n";
+system($command3, $return3);
+if ($return3 !== 0) {
+    die("Error making file executable");
+}
+
+echo "\nSuccess! $filename is now executable.\n";
+echo "You can now run it with: ./$filename\n";
+
 echo "Shell script 'StartCAM-webstream.sh' has been generated successfully.";
 ?>
