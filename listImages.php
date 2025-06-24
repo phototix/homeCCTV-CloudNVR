@@ -1,5 +1,14 @@
 <?php
-$directory = 'E:/MAMP/htdocs/stream/snapshots/';
+// Include config file
+require_once 'config.php';
+
+// Set directory path based on operating system
+if (isset($config['operatingSystem']) && $config['operatingSystem'] === 'ubuntu') {
+    $directory = '/var/www/sg-cctv/stream/snapshots/'; // Ubuntu path
+} else {
+    $directory = 'E:/MAMP/htdocs/stream/snapshots/'; // Default Windows path
+}
+
 $perPage = 18;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $filterDate = isset($_GET['date']) ? $_GET['date'] : '';
@@ -8,14 +17,14 @@ $filterCamera = isset($_GET['camera']) ? $_GET['camera'] : 'all';
 // Validate and sanitize inputs
 if ($page < 1) $page = 1;
 $filterDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $filterDate) ? $filterDate : '';
-$filterCamera = in_array($filterCamera, ['all', 'cam1', 'cam2', 'cam3', 'grid']) ? $filterCamera : 'all';
+$filterCamera = in_array($filterCamera, ['all', 'room1', 'room2', 'room3', 'grid']) ? $filterCamera : 'all';
 
 // Get all image files
 $images = [];
 if (is_dir($directory)) {
     $files = scandir($directory);
     foreach ($files as $file) {
-        if (preg_match('/^(cam1|cam2|cam3|grid)_(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})\.jpg$/i', $file, $matches)) {
+        if (preg_match('/^(room1|room2|room3|grid)_(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})\.jpg$/i', $file, $matches)) {
             $camera = strtolower($matches[1]);
             $date = $matches[2];
             $time = $matches[3] . ':' . $matches[4] . ':' . $matches[5];

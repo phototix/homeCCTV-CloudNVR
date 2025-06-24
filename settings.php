@@ -31,6 +31,7 @@ function decryptPassword($encrypted, $key) {
     <h1 class="mb-4"><i class="bi bi-gear"></i> CloudNVR Settings</h1>
     
     <form id="settingsForm" action="saveSettings.php" method="POST">
+      
       <!-- Device Name -->
       <div class="card mb-4">
         <div class="card-header bg-dark text-white">
@@ -39,8 +40,19 @@ function decryptPassword($encrypted, $key) {
         <div class="card-body">
           <div class="mb-3">
             <label for="deviceName" class="form-label">Device Name</label>
-            <input type="text" class="form-control" id="deviceName" name="deviceName" 
+            <input type="text" class="form-control" id="deviceName" name="deviceName"
                    value="<?php echo htmlspecialchars($config['deviceName'] ?? 'Main NVR') ?>" required>
+          </div>
+          
+          <!-- Operating System Selection -->
+          <div class="mb-3">
+            <label for="operatingSystem" class="form-label">Operating System</label>
+            <select class="form-select" id="operatingSystem" name="operatingSystem" required>
+              <option value="windows" <?php echo (isset($config['operatingSystem']) && $config['operatingSystem'] === 'windows' ? 'selected' : ''); ?>>Windows</option>
+              <option value="ubuntu" <?php echo (isset($config['operatingSystem']) && $config['operatingSystem'] === 'ubuntu' ? 'selected' : ''); ?>>Ubuntu</option>
+              <option value="others" <?php echo (isset($config['operatingSystem']) && $config['operatingSystem'] === 'others' ? 'selected' : ''); ?>>Other OS</option>
+            </select>
+            <div class="form-text">Select the operating system where NVR is running</div>
           </div>
         </div>
       </div>

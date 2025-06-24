@@ -1,10 +1,15 @@
 syncs3.php
 config.php
 SnapShot.bat
+SnapShot.sh
 StartCAM-webstream.bat
+StartCAM-webstream.sh
 ffplay.exe
 ffprobe.exe
 ffmpeg.exe
+/stream/*
+/vendor/*
 /stream/snapshots/*
 !/stream/snapshots/sample.jpg
-/stream/*
+!/vendor/autoload.php
+!/vendor/install.json

@@ -24,6 +24,10 @@ if (!isset($config['encryptionKey'])) {
     $config['encryptionKey'] = base64_encode(openssl_random_pseudo_bytes(32));
 }
 
+// Save OS selection (Windows/Ubuntu/Others)
+$operatingSystem = $_POST['operatingSystem'] ?? 'Windows'; // Default to Windows if not specified
+$config['operatingSystem'] = $operatingSystem;
+
 // Process form data
 $config['deviceName'] = $_POST['deviceName'] ?? 'Main NVR';
 $config['adminUsername'] = $_POST['adminUsername'] ?? 'admin';
@@ -66,6 +70,14 @@ $config['lastUpdated'] = date('Y-m-d H:i:s');
 $configContent = "<?php\n\$config = " . var_export($config, true) . ";\n?>";
 file_put_contents('config.php', $configContent);
 
-header('Location: saveBat.php?status=success');
+// Determine redirect URL based on OS selection
+$redirectUrl = 'saveBat.php'; // Default for Windows
+if ($operatingSystem === 'Ubuntu') {
+    $redirectUrl = 'saveSH.php';
+} elseif ($operatingSystem === 'Others') {
+    $redirectUrl = 'saveOthers.php';
+}
+
+header("Location: $redirectUrl?status=success");
 exit;
 ?>
