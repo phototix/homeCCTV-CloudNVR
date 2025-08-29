@@ -6,8 +6,8 @@ require_once 'config.php';
 // Set paths based on operating system
 if ($config['operatingSystem'] === 'ubuntu') {
     // Ubuntu paths
-    $cloudDir = '/var/www/html/';  // Typical Apache web root on Ubuntu
-    $nvrDir = '/var/www/html/stream/snapshots/';
+    $cloudDir = '/var/www/sg-cctv/';  // Typical Apache web root on Ubuntu
+    $nvrDir = '/var/www/sg-cctv/stream/snapshots/';
 } else {
     // Default Windows paths
     $cloudDir = 'E:/MAMP/htdocs/';
